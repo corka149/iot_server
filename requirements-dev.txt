@@ -5,3 +5,5 @@ pylint
 pytest
 tox
 autopep8
+requests
+mongomock
