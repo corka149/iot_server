@@ -4,8 +4,8 @@ import fastapi
 from fastapi import APIRouter, HTTPException
 from mongoengine import DoesNotExist
 
-from iot_server.model import device_service
-from iot_server.model.device import DeviceDBO, DeviceDTO
+from iot_server.model.device import DeviceDBO, DeviceDTO, DeviceSubmittal
+from iot_server.service import device_service
 
 router = APIRouter(prefix='/device')
 DeviceNotFound = HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND, detail='Device not found')
@@ -28,7 +28,7 @@ def get_one(device_name: str) -> DeviceDTO:
 
 
 @router.post('', response_model=DeviceDTO, status_code=fastapi.status.HTTP_201_CREATED)
-def create(new_device: DeviceDTO) -> DeviceDTO:
+def create(new_device: DeviceSubmittal) -> DeviceDTO:
     """ Creates a new device """
     device = device_service.create(new_device.to_db())
     return device.to_dto()
@@ -44,12 +44,10 @@ def delete(device_name: str):
 
 
 @router.put('/{device_name}', response_model=DeviceDTO)
-def update(device_name: str, updated_device: DeviceDTO) -> DeviceDTO:
+def update(device_name: str, updated_device: DeviceSubmittal) -> DeviceDTO:
     """ Updates a device excluding name, updated_at and created_at. """
-    device: DeviceDBO = DeviceDBO.objects(name=device_name).first()
-    if device is None:
+    try:
+        device = device_service.update(device_name, updated_device.to_db())
+        return device.to_dto()
+    except DoesNotExist:
         raise DeviceNotFound
-    device.place = updated_device.place
-    device.description = updated_device.description
-    device = device.save()
-    return device.to_dto()

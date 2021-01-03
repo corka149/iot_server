@@ -1,17 +1,31 @@
 from datetime import datetime
-from typing import Optional
 
 from mongoengine import StringField, Document, DateTimeField
 from pydantic import BaseModel
 
 
-class DeviceDTO(BaseModel):
+class DeviceSubmittal(BaseModel):
+    """ Used for submissions: A device is a thing that can be everything like a fridge or Raspberry Pi """
+    name: str
+    place: str
+    description: str
+
+    def to_db(self):
+        """ Turns the DTO into a DB object """
+        return DeviceDBO(
+            name=self.name,
+            place=self.place,
+            description=self.description
+        )
+
+
+class DeviceDTO(DeviceSubmittal):
     """ A device is a thing that can be everything like a fridge or Raspberry Pi """
     name: str
     place: str
     description: str
-    created_at: Optional[datetime]
-    update_at: Optional[datetime]
+    created_at: datetime
+    update_at: datetime
 
     def to_db(self):
         """ Turns the DTO into a DB object """

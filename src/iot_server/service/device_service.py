@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 from iot_server.model.device import DeviceDBO
@@ -18,3 +19,12 @@ def create(device: DeviceDBO) -> DeviceDBO:
 def delete(device_name: str):
     device: DeviceDBO = DeviceDBO.objects(name=device_name).get()
     device.delete()
+
+
+def update(device_name: str, updated_device: DeviceDBO) -> DeviceDBO:
+    device: DeviceDBO = DeviceDBO.objects(name=device_name).get()
+    device.place = updated_device.place
+    device.description = updated_device.description
+    device.update_at = datetime.now()
+    device = device.save()
+    return device

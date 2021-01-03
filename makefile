@@ -3,9 +3,11 @@ launch-database:
 
 build-image:
 	docker build -t corka149/iotserver:latest .
+
+release-image: build-image
 	docker push corka149/iotserver:latest
 
-run-standalone:
+run-standalone: build-image
 	docker-compose down
 	docker-compose pull
-	docker-compose up -d
+	docker-compose up
