@@ -1,0 +1,16 @@
+services:
+  iot:
+    image: corka149/iotserver:latest
+    environment:
+      DB_HOST: mongo
+    ports:
+    - 8000:8000
+
+  mongo:
+    image: mongo:4.4.2
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: s3cr3t
+      MONGO_INITDB_DATABASE: iot
+    ports:
+    - 27017:27017
