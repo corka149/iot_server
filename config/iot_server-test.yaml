@@ -1,6 +1,0 @@
-database:
-  host: '127.0.0.1'
-  port: 27017
-  username: admin
-  password: s3cr3t
-  authentication_source: admin

@@ -1,0 +1,1 @@
+recursive-include src/iot_server/configuration *.yaml

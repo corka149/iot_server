@@ -18,7 +18,7 @@ def init(profile: str):
     global _config_yaml
 
     config_path = os.path.abspath(os.path.dirname(__file__))
-    config_path = os.path.join(config_path, f'../../../config/iot_server-{profile.lower().strip()}.yaml')
+    config_path = os.path.join(config_path, f'../configuration/iot_server-{profile.lower().strip()}.yaml')
     yaml_path = Path(config_path)
     if yaml_path.exists():
         with yaml_path.open('r') as yaml_file:
@@ -36,24 +36,24 @@ def get_config(name: str):
     str, float) or a list of str from an environment variable.
     The list must be colon separated.
 
-    Example for config name: "database.host" is equal to
+    Example for config name: "database.authentication_source" is equal to
 
     in config file
     '''
     database:
-        host: localhost
+        authentication_source: admin
     '''
 
     OR
 
-    environment file
+    environment variable (watch out "_" becomes "__")
     '''
-    DATABASE_HOST
+    DATABASE_AUTHENTICATION__SOURCE
     '''
 
     """
     # 1. Check environment variables
-    env_name = name.replace('.', '_').upper()
+    env_name = name.replace('_', '__').replace('.', '_').upper()
     env_val = os.getenv(env_name)
     if env_val:
         if ';' in env_val:

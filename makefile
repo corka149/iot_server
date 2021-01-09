@@ -11,3 +11,7 @@ run-standalone: build-image
 	docker-compose down
 	docker-compose pull
 	docker-compose up
+
+run-test:
+	export IOT_SERVER_PROFILE=test
+	tox

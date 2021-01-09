@@ -5,6 +5,7 @@ setup(
     version='0.0.1',
     packages=['iot_server', 'iot_server.api', 'iot_server.model', 'iot_server.service', 'iot_server.infrastructure'],
     package_dir={'': 'src'},
+    include_package_data=True,  # IMPORTANT for configs in combination with MANIFEST.in
     url='https://github.com/corka149',
     license='',
     author='corka149',
