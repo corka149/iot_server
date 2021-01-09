@@ -3,3 +3,4 @@ mongoengine
 uvicorn[standard]
 gunicorn
 pydantic
+PyYAML
