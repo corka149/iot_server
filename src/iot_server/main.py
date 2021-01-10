@@ -1,3 +1,4 @@
+import logging
 import os
 
 import mongoengine
@@ -7,6 +8,7 @@ from fastapi import FastAPI
 from iot_server.infrastructure import config
 
 api = FastAPI()
+logger = logging.getLogger(__name__)
 
 
 def configure_database():
@@ -20,15 +22,17 @@ def configure_routes():
     api.include_router(device.router)
 
 
-def configure():
-    config.init(os.getenv('IOT_SERVER_PROFILE', 'dev'))
+def configure(profile=None):
+    profile = profile if profile else os.getenv('IOT_SERVER_PROFILE', 'test')
+    logger.info('PROFILE: ' + profile)
+    config.init(profile)
     configure_database()
     configure_routes()
 
 
 if __name__ == '__main__':
     # from IDE
-    configure()
+    configure('dev')
     uvicorn.run(api)
 else:
     configure()

@@ -1,0 +1,6 @@
+database:
+  host: 'mongo'
+  port: 27017
+  username: admin
+  password: s3cr3t
+  authentication_source: admin

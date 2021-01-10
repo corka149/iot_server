@@ -5,7 +5,7 @@ services:
   iot:
     image: corka149/iotserver:latest
     environment:
-      DB_HOST: mongo
+      IOT_SERVER_PROFILE: docker
     ports:
       - 8000:8000
 
