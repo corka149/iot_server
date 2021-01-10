@@ -18,7 +18,9 @@ def init(profile: str):
     global _config_yaml
 
     config_path = os.path.abspath(os.path.dirname(__file__))
-    config_path = os.path.join(config_path, f'../configuration/iot_server-{profile.lower().strip()}.yaml')
+    config_path = os.path.join(
+        config_path,
+        f'../configuration/iot_server-{profile.lower().strip()}.yaml')
     yaml_path = Path(config_path)
     if yaml_path.exists():
         with yaml_path.open('r') as yaml_file:
@@ -64,7 +66,7 @@ def get_config(name: str):
     keys = name.split('.')
     val = _config_yaml
     for k in keys:
-        if isinstance(val, Dict):
+        if isinstance(val, dict):
             val = val.get(k, {})
 
     if val:

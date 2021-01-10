@@ -1,3 +1,4 @@
+""" API collection for device management """
 from typing import List, Optional
 
 import fastapi
@@ -8,7 +9,9 @@ from iot_server.model.device import DeviceDBO, DeviceDTO, DeviceSubmittal
 from iot_server.service import device_service
 
 router = APIRouter(prefix='/device')
-DeviceNotFound = HTTPException(status_code=fastapi.status.HTTP_404_NOT_FOUND, detail='Device not found')
+DeviceNotFound = HTTPException(
+    status_code=fastapi.status.HTTP_404_NOT_FOUND,
+    detail='Device not found')
 
 
 @router.get('', response_model=List[DeviceDTO])
@@ -40,7 +43,8 @@ def delete(device_name: str):
     try:
         device_service.delete(device_name)
     except DoesNotExist:
-        raise DeviceNotFound
+        # Swallow the DoesNotExist exception
+        raise DeviceNotFound from None
 
 
 @router.put('/{device_name}', response_model=DeviceDTO)
@@ -50,4 +54,5 @@ def update(device_name: str, updated_device: DeviceSubmittal) -> DeviceDTO:
         device = device_service.update(device_name, updated_device.to_db())
         return device.to_dto()
     except DoesNotExist:
-        raise DeviceNotFound
+        # Swallow the DoesNotExist exception
+        raise DeviceNotFound from None

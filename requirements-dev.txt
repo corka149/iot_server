@@ -2,6 +2,7 @@
 
 mypy
 pylint
+pylint-mongoengine
 pytest
 tox
 autopep8

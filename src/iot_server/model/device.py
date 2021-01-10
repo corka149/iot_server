@@ -1,3 +1,4 @@
+""" Collection of device models """
 from datetime import datetime
 
 from mongoengine import StringField, Document, DateTimeField
@@ -5,7 +6,9 @@ from pydantic import BaseModel
 
 
 class DeviceSubmittal(BaseModel):
-    """ Used for submissions: A device is a thing that can be everything like a fridge or Raspberry Pi """
+    """
+    Used for submissions: A device is a thing that can be everything like a fridge or Raspberry Pi.
+    """
     name: str
     place: str
     description: str
@@ -39,6 +42,7 @@ class DeviceDTO(DeviceSubmittal):
 
 
 class DeviceDBO(Document):
+    """ Device database object """
     name = StringField(required=True, unique=True)
     place = StringField(required=True)
     description = StringField()
