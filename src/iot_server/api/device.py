@@ -1,17 +1,23 @@
 """ API collection for device management """
+import logging
 from typing import List, Optional
 
 import fastapi
 from fastapi import APIRouter, HTTPException
 from mongoengine import DoesNotExist
+from pydantic import ValidationError
+from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from iot_server.model.device import DeviceDBO, DeviceDTO, DeviceSubmittal
-from iot_server.service import device_service
+from iot_server.model.message import MessageDTO, MessageDBO
+from iot_server.service import device_service, message_service
+from iot_server.service.exchange_service import ExchangeService
 
 router = APIRouter(prefix='/device')
 DeviceNotFound = HTTPException(
     status_code=fastapi.status.HTTP_404_NOT_FOUND,
     detail='Device not found')
+log = logging.getLogger(__name__)
 
 
 @router.get('', response_model=List[DeviceDTO])
@@ -56,3 +62,29 @@ def update(device_name: str, updated_device: DeviceSubmittal) -> DeviceDTO:
     except DoesNotExist:
         # Swallow the DoesNotExist exception
         raise DeviceNotFound from None
+
+
+@router.websocket('/{device_name}/exchange')
+async def exchange(device_name: str, websocket: WebSocket):
+    await websocket.accept()
+    ExchangeService.remove(device_name, websocket)
+
+    try:
+        while True:
+            message = await _receive_and_convert(websocket)
+            await ExchangeService.broadcast(device_name, websocket, message)
+    except WebSocketDisconnect:
+        log.info('client disconnected')
+        ExchangeService.remove(device_name, websocket)
+
+
+async def _receive_and_convert(websocket):
+    json_data = await websocket.receive_json()
+    try:
+        message = MessageDTO(**json_data)
+        message_dbo = MessageDBO(**json_data)
+        message_service.create(message_dbo)
+    except ValidationError as ex:
+        log.error(str(ex))
+        message = ex.json()
+    return message
