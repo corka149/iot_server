@@ -63,14 +63,7 @@ def update(device_name: str, updated_device: DeviceSubmittal) -> DeviceDTO:
         raise DeviceNotFound from None
 
 
-@router.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    while True:
-        data = await websocket.receive_text()
-        await websocket.send_text(f"Message text was: {data}")
-
-
+# /device/{device_name}/exchange
 async def exchange(websocket: WebSocket, device_name: str):
     device = device_service.get_by_name(device_name)
     if device is None:
