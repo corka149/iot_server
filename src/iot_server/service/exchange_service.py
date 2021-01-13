@@ -22,4 +22,4 @@ class ExchangeService:
     async def broadcast(cls, device_name: str, sender: WebSocket, message: MessageDTO):
         for ws in cls._connections.get(device_name, []):
             if ws != sender:
-                await ws.send_json(message)
+                await ws.send_json(message.json())

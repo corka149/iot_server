@@ -3,10 +3,9 @@ import logging
 from typing import List, Optional
 
 import fastapi
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status
 from mongoengine import DoesNotExist
 from pydantic import ValidationError
-from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from iot_server.model.device import DeviceDBO, DeviceDTO, DeviceSubmittal
 from iot_server.model.message import MessageDTO, MessageDBO
@@ -64,27 +63,41 @@ def update(device_name: str, updated_device: DeviceSubmittal) -> DeviceDTO:
         raise DeviceNotFound from None
 
 
-@router.websocket('/{device_name}/exchange')
-async def exchange(device_name: str, websocket: WebSocket):
+@router.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
-    ExchangeService.remove(device_name, websocket)
+    while True:
+        data = await websocket.receive_text()
+        await websocket.send_text(f"Message text was: {data}")
+
+
+async def exchange(websocket: WebSocket, device_name: str):
+    device = device_service.get_by_name(device_name)
+    if device is None:
+        await websocket.close(code=status.WS_1014_BAD_GATEWAY)
+        return
+
+    await websocket.accept()
+    ExchangeService.register(device_name, websocket)
 
     try:
         while True:
             message = await _receive_and_convert(websocket)
-            await ExchangeService.broadcast(device_name, websocket, message)
+            if message:
+                await ExchangeService.broadcast(device_name, websocket, message)
     except WebSocketDisconnect:
         log.info('client disconnected')
         ExchangeService.remove(device_name, websocket)
 
 
-async def _receive_and_convert(websocket):
+async def _receive_and_convert(websocket) -> Optional[MessageDTO]:
     json_data = await websocket.receive_json()
     try:
         message = MessageDTO(**json_data)
         message_dbo = MessageDBO(**json_data)
         message_service.create(message_dbo)
+        return message
     except ValidationError as ex:
         log.error(str(ex))
-        message = ex.json()
-    return message
+        await websocket.send_json(ex.json())
+    return None

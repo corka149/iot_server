@@ -26,4 +26,3 @@ class MessageDTO(BaseModel):
     """ To be exchanged between devices """
     type: str
     content: str
-    timestamp: datetime = datetime.now()
