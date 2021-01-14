@@ -7,7 +7,6 @@ import uvicorn
 from fastapi import FastAPI
 
 from iot_server.api import manage, device
-from iot_server.api.device import exchange
 from iot_server.infrastructure import config
 
 api = FastAPI(debug=True)
@@ -24,7 +23,6 @@ def configure_routes():
     """ Configures the routes for the FastAPI app. """
     api.include_router(manage.router)
     api.include_router(device.router)
-    api.add_api_websocket_route('/device/{device_name}/exchange', exchange)
 
 
 def configure(profile=None):

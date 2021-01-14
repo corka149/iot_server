@@ -8,4 +8,4 @@ tox
 autopep8
 requests
 mongomock
-websockets
+aiohttp

@@ -1,7 +1,7 @@
 import asyncio
 
 import requests
-import websockets
+from aiohttp import ClientSession
 
 from iot_server.model.device import DeviceDTO, DeviceSubmittal
 from iot_server.model.message import MessageDTO
@@ -11,12 +11,13 @@ async def main():
     device_uri = setup()
 
     ws_uri = 'ws://' + device_uri + '/pump/exchange'
-    async with websockets.connect(ws_uri) as websocket:
-        while True:
-            type_ = input('Type: ').strip()
-            content = input('Content: ').strip()
-            message = MessageDTO(type=type_, content=content)
-            await websocket.send(message.json())
+    async with ClientSession() as session:
+        async with session.ws_connect(ws_uri) as websocket:
+            while True:
+                type_ = input('Type: ').strip()
+                content = input('Content: ').strip()
+                message = MessageDTO(type=type_, content=content)
+                await websocket.send_str(message.json())
 
 
 def setup():

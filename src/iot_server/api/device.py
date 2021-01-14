@@ -63,7 +63,8 @@ def update(device_name: str, updated_device: DeviceSubmittal) -> DeviceDTO:
         raise DeviceNotFound from None
 
 
-# /device/{device_name}/exchange
+# Must also have prefix ?!
+@router.websocket('/device/{device_name}/exchange')
 async def exchange(websocket: WebSocket, device_name: str):
     device = device_service.get_by_name(device_name)
     if device is None:
