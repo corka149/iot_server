@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 
 import aiohttp
 from aiohttp import ClientSession, WSMessage
@@ -11,7 +12,7 @@ async def main():
             async for msg in websocket:
                 msg: WSMessage = msg
                 if msg.type == aiohttp.WSMsgType.TEXT:
-                    print(f'==> {msg.data}')
+                    print(f'{datetime.now()}: Server sent "{msg.data}"')
                 elif msg.type == aiohttp.WSMsgType.ERROR:
                     print('ERROR')
                     break

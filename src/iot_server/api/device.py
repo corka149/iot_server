@@ -1,6 +1,7 @@
 """ API collection for device management """
 import logging
 from typing import List, Optional
+from uuid import uuid4
 
 import fastapi
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status
@@ -74,13 +75,17 @@ async def exchange(websocket: WebSocket, device_name: str):
     await websocket.accept()
     ExchangeService.register(device_name, websocket)
 
+    access_id = str(uuid4())
+    await websocket.send_json({'access_id': access_id})
+
     try:
         while True:
             message = await _receive_and_convert(websocket)
             if message:
                 await ExchangeService.broadcast(device_name, websocket, message)
+                await websocket.send_text('ACK')
     except WebSocketDisconnect:
-        log.info('client disconnected')
+        log.warning(f'client {access_id} disconnected')
         ExchangeService.remove(device_name, websocket)
 
 

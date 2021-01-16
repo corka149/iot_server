@@ -10,6 +10,7 @@ class MessageDBO(Document):
     id = UUIDField(default=uuid.uuid4)
     type = StringField()
     content = StringField()
+    origin_access_id = StringField()
     timestamp = DateTimeField(default=datetime.now)
 
     meta = {
@@ -24,5 +25,6 @@ class MessageDBO(Document):
 
 class MessageDTO(BaseModel):
     """ To be exchanged between devices """
+    origin_access_id: str
     type: str
     content: str

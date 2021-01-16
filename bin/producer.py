@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 
 import requests
 from aiohttp import ClientSession
@@ -9,15 +10,28 @@ from iot_server.model.message import MessageDTO
 
 async def main():
     device_uri = setup()
+    access_id = 'unknown'
 
     ws_uri = 'ws://' + device_uri + '/pump/exchange'
     async with ClientSession() as session:
         async with session.ws_connect(ws_uri) as websocket:
+            msg: dict = await websocket.receive_json()
+            if 'access_id' in msg:
+                access_id = msg.get('access_id')
+
             while True:
-                type_ = input('Type: ').strip()
-                content = input('Content: ').strip()
-                message = MessageDTO(type=type_, content=content)
+                type_ = 'INFO'
+                content = f'power: 100% {datetime.now()}'
+                message = MessageDTO(origin_access_id=access_id, type=type_, content=content)
+
                 await websocket.send_str(message.json())
+                ack = await websocket.receive_str()
+                if 'ACK' == ack:
+                    print(f'{datetime.now()}: Server acknowledged')
+                else:
+                    await websocket.close()
+
+                await asyncio.sleep(5)
 
 
 def setup():
