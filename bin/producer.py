@@ -5,7 +5,7 @@ import requests
 from aiohttp import ClientSession
 
 from iot_server.model.device import DeviceDTO, DeviceSubmittal
-from iot_server.model.message import MessageDTO
+from iot_server.model.message import MessageDTO, MessageType
 
 
 async def main():
@@ -22,7 +22,8 @@ async def main():
             while True:
                 type_ = 'INFO'
                 content = f'power: 100% {datetime.now()}'
-                message = MessageDTO(origin_access_id=access_id, type=type_, content=content)
+                target = MessageType.BROADCAST.value
+                message = MessageDTO(origin_access_id=access_id, type=type_, content=content, target=target)
 
                 await websocket.send_str(message.json())
                 ack = await websocket.receive_str()

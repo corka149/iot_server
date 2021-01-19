@@ -73,20 +73,20 @@ async def exchange(websocket: WebSocket, device_name: str):
         return
 
     await websocket.accept()
-    ExchangeService.register(device_name, websocket)
-
     access_id = str(uuid4())
+
+    ExchangeService.register(device_name, access_id, websocket)
     await websocket.send_json({'access_id': access_id})
 
     try:
         while True:
             message = await _receive_and_convert(websocket)
             if message:
-                await ExchangeService.broadcast(device_name, websocket, message)
+                await ExchangeService.dispatch(device_name, access_id, message)
                 await websocket.send_text('ACK')
     except WebSocketDisconnect:
         log.warning(f'client {access_id} disconnected')
-        ExchangeService.remove(device_name, websocket)
+        ExchangeService.remove(device_name, access_id)
 
 
 async def _receive_and_convert(websocket) -> Optional[MessageDTO]:
