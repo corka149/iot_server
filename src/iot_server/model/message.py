@@ -1,8 +1,7 @@
-import uuid
 from datetime import datetime
 from enum import Enum
 
-from mongoengine import Document, StringField, DateTimeField, UUIDField
+from mongoengine import Document, StringField, DateTimeField
 from pydantic import BaseModel
 
 
@@ -12,7 +11,6 @@ class MessageType(Enum):
 
 class MessageDBO(Document):
     """ Message model in database """
-    id = UUIDField(default=uuid.uuid4)
     type = StringField()
     target = StringField()
     content = StringField()
