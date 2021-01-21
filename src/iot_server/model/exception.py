@@ -1,6 +1,7 @@
 """ Exceptions that occur on device side. """
+from datetime import datetime
 
-from mongoengine import Document, StringField
+from mongoengine import Document, StringField, DateTimeField
 from pydantic.main import BaseModel
 
 
@@ -10,6 +11,7 @@ class ExceptionDBO(Document):
     clazz = StringField()
     message = StringField()
     stacktrace = StringField()
+    created_at = DateTimeField(default=datetime.now)
 
     meta = {
         'collection': 'exceptions',
@@ -17,13 +19,14 @@ class ExceptionDBO(Document):
             'hostname',
             'clazz',
             'message',
-            'stacktrace'
+            'stacktrace',
+            'created_at'
         ]
     }
 
 
 class ExceptionSubmittal(BaseModel):
-    """ New not persisted exception """
+    """ New not persisted exception. It has a hostname, clazz, message, stacktrace. """
     hostname: str
     clazz: str
     message: str
