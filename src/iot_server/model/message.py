@@ -1,3 +1,4 @@
+""" Messages are exchanged between connected devices. """
 from datetime import datetime
 from enum import Enum
 
@@ -6,7 +7,9 @@ from pydantic import BaseModel
 
 
 class MessageType(Enum):
+    """ Type of an incoming message """
     BROADCAST = 'BROADCAST'
+    SERVER = 'SERVER'
 
 
 class MessageDBO(Document):

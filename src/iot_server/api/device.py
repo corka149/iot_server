@@ -67,6 +67,7 @@ def update(device_name: str, updated_device: DeviceSubmittal) -> DeviceDTO:
 # Must also have prefix ?!
 @router.websocket('/device/{device_name}/exchange')
 async def exchange(websocket: WebSocket, device_name: str):
+    """ Receives and distribute messages about devices. """
     device = device_service.get_by_name(device_name)
     if device is None:
         await websocket.close(code=status.WS_1014_BAD_GATEWAY)
@@ -85,7 +86,7 @@ async def exchange(websocket: WebSocket, device_name: str):
                 await ExchangeService.dispatch(device_name, access_id, message)
                 await websocket.send_text('ACK')
     except WebSocketDisconnect:
-        log.warning(f'client {access_id} disconnected')
+        log.warning('client %s disconnected', access_id)
         ExchangeService.remove(device_name, access_id)
 
 
