@@ -4,3 +4,8 @@ database:
   username: admin
   password: s3cr3t
   authentication_source: admin
+
+security:
+  basic:
+    username: iot
+    password: passwd

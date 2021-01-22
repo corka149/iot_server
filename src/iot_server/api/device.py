@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, st
 from mongoengine import DoesNotExist
 from pydantic import ValidationError
 
+from iot_server.infrastructure.security import authenticated
 from iot_server.model.device import DeviceDBO, DeviceDTO, DeviceSubmittal
 from iot_server.model.message import MessageDTO, MessageDBO
 from iot_server.service import device_service, message_service
@@ -21,14 +22,14 @@ log = logging.getLogger(__name__)
 
 
 @router.get('', response_model=List[DeviceDTO])
-def get_all() -> List[DeviceDTO]:
+def get_all(_: bool = authenticated) -> List[DeviceDTO]:
     """ Returns all devices """
     devices: List[DeviceDBO] = device_service.get_all_devices()
     return [d.to_dto() for d in devices]
 
 
 @router.get('/{device_name}', response_model=DeviceDTO)
-def get_one(device_name: str) -> DeviceDTO:
+def get_one(device_name: str, _: bool = authenticated) -> DeviceDTO:
     """ Get one device by its name """
     device: Optional[DeviceDBO] = device_service.get_by_name(device_name)
     if device:
@@ -37,14 +38,14 @@ def get_one(device_name: str) -> DeviceDTO:
 
 
 @router.post('', response_model=DeviceDTO, status_code=fastapi.status.HTTP_201_CREATED)
-def create(new_device: DeviceSubmittal) -> DeviceDTO:
+def create(new_device: DeviceSubmittal, _: bool = authenticated) -> DeviceDTO:
     """ Creates a new device """
     device = device_service.create(new_device.to_db())
     return device.to_dto()
 
 
 @router.delete('/{device_name}', status_code=fastapi.status.HTTP_204_NO_CONTENT)
-def delete(device_name: str):
+def delete(device_name: str, _: bool = authenticated):
     """ Deletes a device """
     try:
         device_service.delete(device_name)
@@ -54,7 +55,7 @@ def delete(device_name: str):
 
 
 @router.put('/{device_name}', response_model=DeviceDTO)
-def update(device_name: str, updated_device: DeviceSubmittal) -> DeviceDTO:
+def update(device_name: str, updated_device: DeviceSubmittal, _: bool = authenticated) -> DeviceDTO:
     """ Updates a device excluding name, updated_at and created_at. """
     try:
         device = device_service.update(device_name, updated_device.to_db())
@@ -66,7 +67,7 @@ def update(device_name: str, updated_device: DeviceSubmittal) -> DeviceDTO:
 
 # Must also have prefix ?!
 @router.websocket('/device/{device_name}/exchange')
-async def exchange(websocket: WebSocket, device_name: str):
+async def exchange(websocket: WebSocket, device_name: str, _: bool = authenticated):
     """ Receives and distribute messages about devices. """
     device = device_service.get_by_name(device_name)
     if device is None:

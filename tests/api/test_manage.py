@@ -6,10 +6,10 @@ test_client: TestClient = TestClient(api)
 
 
 def test_health():
-    response = test_client.get('/manage/health')
-    assert response.status_code == 200
+    response = test_client.get('/manage/health', auth=('iotTest', 'passwdTest'))
+    assert 200 == response.status_code
 
 
 def test_info():
-    response = test_client.get('/manage/info')
-    assert response.status_code == 200
+    response = test_client.get('/manage/info', auth=('iotTest', 'passwdTest'))
+    assert 200 == response.status_code

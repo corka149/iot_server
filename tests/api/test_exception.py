@@ -15,9 +15,9 @@ def test_create():
         stacktrace='foo bar'
     )
 
-    response = test_client.post('/exception', data=dto.json())
+    response = test_client.post('/exception', data=dto.json(), auth=('iotTest', 'passwdTest'))
 
-    assert 201 == response.status_code
+    assert response.status_code == 201
     assert 0 < len(response.text)
 
     dbo = exception_service.get_one(response.text)
