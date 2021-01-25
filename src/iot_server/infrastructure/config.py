@@ -48,15 +48,15 @@ def get_config(name: str):
 
     OR
 
-    environment variable (watch out "_" becomes "__")
+    environment variable (watch out "_" becomes "__" and gets the "IOT_" prefix)
     '''
-    DATABASE_AUTHENTICATION__SOURCE
+    IOT_DATABASE_AUTHENTICATION__SOURCE
     '''
 
     """
     # 1. Check environment variables
     env_name = name.replace('_', '__').replace('.', '_').upper()
-    env_val = os.getenv(env_name)
+    env_val = os.getenv('IOT_' + env_name)
     if env_val:
         if ';' in env_val:
             return [v.strip() for v in env_val.split(';')]
