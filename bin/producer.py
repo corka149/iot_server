@@ -7,6 +7,8 @@ from aiohttp import ClientSession
 from iot_server.model.device import DeviceDTO, DeviceSubmittal
 from iot_server.model.message import MessageDTO, MessageType
 
+headers = {'Authorization': 'Basic aW90OnBhc3N3ZA=='}
+
 
 async def main():
     device_uri = setup()
@@ -14,7 +16,7 @@ async def main():
 
     ws_uri = 'ws://' + device_uri + '/pump/exchange'
     async with ClientSession() as session:
-        async with session.ws_connect(ws_uri) as websocket:
+        async with session.ws_connect(ws_uri, headers=headers) as websocket:
             msg: dict = await websocket.receive_json()
             if 'access_id' in msg:
                 access_id = msg.get('access_id')
@@ -37,13 +39,13 @@ async def main():
 
 def setup():
     device_uri = '127.0.0.1:8000/device'
-    response = requests.get('http://' + device_uri + '/pump')
+    response = requests.get('http://' + device_uri + '/pump', headers=headers)
     if response.status_code == 200:
         _ = DeviceDTO(**response.json())
         print('Received device data')
     else:
         device_sub = DeviceSubmittal(name='pump', place='garden', description='For water')
-        response = requests.post('http://' + device_uri, data=device_sub.json())
+        response = requests.post('http://' + device_uri, data=device_sub.json(), headers=headers)
         response.raise_for_status()
         _ = DeviceDTO(**response.json())
         print('Created device data')
