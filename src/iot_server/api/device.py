@@ -4,11 +4,11 @@ from typing import List, Optional
 from uuid import uuid4
 
 import fastapi
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status, Header
 from mongoengine import DoesNotExist
 from pydantic import ValidationError
 
-from iot_server.infrastructure.security import authenticated
+from iot_server.infrastructure.security import authenticated, check_authorization
 from iot_server.model.device import DeviceDBO, DeviceDTO, DeviceSubmittal
 from iot_server.model.message import MessageDTO, MessageDBO
 from iot_server.service import device_service, message_service
@@ -18,7 +18,7 @@ router = APIRouter(prefix='/device')
 DeviceNotFound = HTTPException(
     status_code=fastapi.status.HTTP_404_NOT_FOUND,
     detail='Device not found')
-log = logging.getLogger(__name__)
+_LOG = logging.getLogger(__name__)
 
 
 @router.get('', response_model=List[DeviceDTO])
@@ -66,9 +66,14 @@ def update(device_name: str, updated_device: DeviceSubmittal, _: bool = authenti
 
 
 # Must also have prefix ?!
+# _: bool = authenticated <== Not possible o.O ?
 @router.websocket('/device/{device_name}/exchange')
-async def exchange(websocket: WebSocket, device_name: str, _: bool = authenticated):
+async def exchange(websocket: WebSocket, device_name: str,
+                   authorization: Optional[str] = Header(None)):
     """ Receives and distribute messages about devices. """
+    if check_authorization(authorization):
+        _LOG.debug('Successful authenticated')
+
     device = device_service.get_by_name(device_name)
     if device is None:
         await websocket.close(code=status.WS_1014_BAD_GATEWAY)
@@ -87,7 +92,7 @@ async def exchange(websocket: WebSocket, device_name: str, _: bool = authenticat
                 await ExchangeService.dispatch(device_name, access_id, message)
                 await websocket.send_text('ACK')
     except WebSocketDisconnect:
-        log.warning('client %s disconnected', access_id)
+        _LOG.warning('client %s disconnected', access_id)
         ExchangeService.remove(device_name, access_id)
 
 
@@ -99,6 +104,6 @@ async def _receive_and_convert(websocket) -> Optional[MessageDTO]:
         message_service.create(message_dbo)
         return message
     except ValidationError as ex:
-        log.error(str(ex))
+        _LOG.error(str(ex))
         await websocket.send_json(ex.json())
     return None
