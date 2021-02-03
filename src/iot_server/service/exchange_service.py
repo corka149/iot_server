@@ -29,9 +29,10 @@ class ExchangeService:
         is_broadcast = message.target == MessageType.BROADCAST.value
 
         for access_id, web_socket in cls._connections.get(device_name, []):
+            web_socket: WebSocket = web_socket
             if is_broadcast and access_id != sender_id:
-                await web_socket.send_json(message.json())
+                await web_socket.send_text(message.json())
             elif access_id == message.target:
                 # Must be single target
-                await web_socket.send_json(message.json())
+                await web_socket.send_text(message.json())
                 return
