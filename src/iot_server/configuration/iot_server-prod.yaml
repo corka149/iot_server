@@ -1,0 +1,4 @@
+database:
+  host: 'mongo'
+  port: 27017
+  authentication_source: admin
