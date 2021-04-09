@@ -20,7 +20,7 @@ class ExchangeService:
     def remove(cls, device_name: str, access_id: str):
         """ Removes a websocket connection from the connection store. """
         new_sockets = [(a_id, ws) for a_id, ws
-                       in cls._connections.get(device_name, []) if a_id != access_id]
+                       in cls._connections[device_name] if a_id != access_id]
         cls._connections[device_name] = new_sockets
 
     @classmethod
@@ -28,7 +28,7 @@ class ExchangeService:
         """ Dispatches a message to 0, 1 or n targets """
         is_broadcast = message.target == MessageType.BROADCAST.value
 
-        for access_id, web_socket in cls._connections.get(device_name, []):
+        for access_id, web_socket in cls._connections[device_name]:
             web_socket: WebSocket = web_socket
             if is_broadcast and access_id != sender_id:
                 await web_socket.send_text(message.json())
