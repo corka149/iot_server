@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='iot_server',
-    version='0.0.1',
+    version='1.0.0',
     packages=['iot_server', 'iot_server.api', 'iot_server.model', 'iot_server.service', 'iot_server.infrastructure'],
     package_dir={'': 'src'},
     include_package_data=True,  # IMPORTANT for configs in combination with MANIFEST.in
