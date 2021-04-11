@@ -16,13 +16,18 @@ logger = logging.getLogger(__name__)
 def configure_database():
     """ Configures everything around the database on the startup. """
     host = config.get_config('database.host')
-    port = config.get_config('database.port')
-    username = config.get_config('database.username')
-    password = config.get_config('database.password')
-    authentication_source = config.get_config('database.authentication_source')
-    mongoengine.connect('iot', host=host, port=port, username=username,
-                        authentication_source=authentication_source,
-                        password=password)
+
+    # Test profile uses mock mongo db
+    if os.getenv('IOT_SERVER_PROFILE', 'test') == 'test':
+        mongoengine.connect('iot', host=host)
+    else:
+        port = config.get_config('database.port')
+        username = config.get_config('database.username')
+        password = config.get_config('database.password')
+        authentication_source = config.get_config('database.authentication_source')
+        mongoengine.connect('iot', host=host, port=port, username=username,
+                            authentication_source=authentication_source,
+                            password=password)
 
 
 def configure_routes():
