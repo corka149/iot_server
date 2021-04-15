@@ -44,6 +44,7 @@ def configure(profile=None):
     config.init(profile)
     configure_database()
     configure_routes()
+    logging.basicConfig(level=logging.INFO)
 
 
 if __name__ == '__main__':
