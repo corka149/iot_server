@@ -16,7 +16,7 @@ from iot_server.service.exchange_service import ExchangeService
 
 router = APIRouter(prefix='/device')
 log = logging.getLogger(__name__)
-exchange = ExchangeService()
+exchange_service = ExchangeService()
 DeviceNotFound = HTTPException(
     status_code=fastapi.status.HTTP_404_NOT_FOUND,
     detail='Device not found')
@@ -83,18 +83,18 @@ async def exchange(websocket: WebSocket, device_name: str,
     await websocket.accept()
     access_id = str(uuid4())
 
-    exchange.register(device_name, access_id, websocket)
+    exchange_service.register(device_name, access_id, websocket)
     await websocket.send_json({'access_id': access_id})
 
     try:
         while True:
             message = await _receive_and_convert(websocket)
             if message:
-                await exchange.dispatch(device_name, access_id, message)
+                await exchange_service.dispatch(device_name, access_id, message)
                 await websocket.send_text('ACK')
     except WebSocketDisconnect:
         log.warning('client %s disconnected', access_id)
-        exchange.remove(device_name, access_id)
+        exchange_service.remove(device_name, access_id)
 
 
 async def _receive_and_convert(websocket) -> Optional[MessageDTO]:
