@@ -42,9 +42,9 @@ def configure(profile=None):
     profile = profile if profile else os.getenv('IOT_SERVER_PROFILE', 'test')
     logger.info('PROFILE: %s', profile)
     config.init(profile)
+    config.set_log_level(config.get_config('logging.level'))
     configure_database()
     configure_routes()
-    logging.basicConfig(level=logging.INFO)
 
 
 if __name__ == '__main__':

@@ -1,3 +1,6 @@
+logging:
+  level: debug
+
 database:
   host: 'mongomock://localhost'
 

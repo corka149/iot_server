@@ -72,3 +72,23 @@ def get_config(name: str):
     if val:
         return val
     raise ValueError(f'"{name} not found')
+
+
+def set_log_level(level: str):
+    """
+    Sets the logging level based on the given str.
+
+    Allowed values: DEBUG, INFO, WARN, ERROR
+    """
+    level = level.lower()
+
+    if level == 'debug':
+        logging.basicConfig(level=logging.DEBUG)
+    elif level == 'info':
+        logging.basicConfig(level=logging.INFO)
+    elif level == 'warn':
+        logging.basicConfig(level=logging.WARNING)
+    elif level == 'error':
+        logging.basicConfig(level=logging.ERROR)
+    else:
+        _log.warning('Unknown log level "%s"', level)
