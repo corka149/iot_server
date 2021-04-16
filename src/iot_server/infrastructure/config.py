@@ -80,15 +80,5 @@ def set_log_level(level: str):
 
     Allowed values: DEBUG, INFO, WARN, ERROR
     """
-    level = level.lower()
-
-    if level == 'debug':
-        logging.basicConfig(level=logging.DEBUG)
-    elif level == 'info':
-        logging.basicConfig(level=logging.INFO)
-    elif level == 'warn':
-        logging.basicConfig(level=logging.WARNING)
-    elif level == 'error':
-        logging.basicConfig(level=logging.ERROR)
-    else:
-        _log.warning('Unknown log level "%s"', level)
+    log_level = logging.getLevelName(level.upper())
+    logging.basicConfig(level=log_level)
