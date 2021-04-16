@@ -15,10 +15,11 @@ from iot_server.service import device_service, message_service
 from iot_server.service.exchange_service import ExchangeService
 
 router = APIRouter(prefix='/device')
+log = logging.getLogger(__name__)
+exchange = ExchangeService()
 DeviceNotFound = HTTPException(
     status_code=fastapi.status.HTTP_404_NOT_FOUND,
     detail='Device not found')
-_LOG = logging.getLogger(__name__)
 
 
 @router.get('', response_model=List[DeviceDTO])
@@ -72,7 +73,7 @@ async def exchange(websocket: WebSocket, device_name: str,
                    authorization: Optional[str] = Header(None)):
     """ Receives and distribute messages about devices. """
     if check_authorization(authorization):
-        _LOG.debug('Successful authenticated')
+        log.debug('Successful authenticated')
 
     device = device_service.get_by_name(device_name)
     if device is None:
@@ -82,18 +83,18 @@ async def exchange(websocket: WebSocket, device_name: str,
     await websocket.accept()
     access_id = str(uuid4())
 
-    ExchangeService.register(device_name, access_id, websocket)
+    exchange.register(device_name, access_id, websocket)
     await websocket.send_json({'access_id': access_id})
 
     try:
         while True:
             message = await _receive_and_convert(websocket)
             if message:
-                await ExchangeService.dispatch(device_name, access_id, message)
+                await exchange.dispatch(device_name, access_id, message)
                 await websocket.send_text('ACK')
     except WebSocketDisconnect:
-        _LOG.warning('client %s disconnected', access_id)
-        ExchangeService.remove(device_name, access_id)
+        log.warning('client %s disconnected', access_id)
+        exchange.remove(device_name, access_id)
 
 
 async def _receive_and_convert(websocket) -> Optional[MessageDTO]:
@@ -104,6 +105,6 @@ async def _receive_and_convert(websocket) -> Optional[MessageDTO]:
         message_service.create(message_dbo)
         return message
     except ValidationError as ex:
-        _LOG.error(str(ex))
+        log.error(str(ex))
         await websocket.send_json(ex.json())
     return None
