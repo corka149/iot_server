@@ -1,14 +1,15 @@
 from fastapi.testclient import TestClient
 
-from iot_server.main import api
+from iot_server.main import app
 from iot_server.model.device import DeviceDBO, DeviceDTO, DeviceSubmittal
 from iot_server.service import device_service
 
-test_client: TestClient = TestClient(api)
+test_client: TestClient = TestClient(app)
 
 
 def test_get_all():
-    device = DeviceDBO(name='bubble', place='kitchen', description='Brings light')
+    device = DeviceDBO(name='bubble', place='kitchen',
+                       description='Brings light')
     device_service.create(device)
 
     response = test_client.get('/device', auth=('iotTest', 'passwdTest'))
@@ -25,7 +26,8 @@ def test_get():
     device = DeviceDBO(name='fridge', place='kitchen', description='For food')
     device_service.create(device)
 
-    response = test_client.get('/device/' + device.name, auth=('iotTest', 'passwdTest'))
+    response = test_client.get(
+        '/device/' + device.name, auth=('iotTest', 'passwdTest'))
     assert 200 == response.status_code
 
     dto = DeviceDTO(**response.json())
@@ -35,9 +37,11 @@ def test_get():
 
 
 def test_create():
-    device = DeviceSubmittal(name='freezer', place='Kitchen', description='So cool')
+    device = DeviceSubmittal(
+        name='freezer', place='Kitchen', description='So cool')
 
-    response = test_client.post('/device', data=device.json(), auth=('iotTest', 'passwdTest'))
+    response = test_client.post(
+        '/device', data=device.json(), auth=('iotTest', 'passwdTest'))
     assert 201 == response.status_code
 
     created_device = DeviceDTO(**response.json())
@@ -47,11 +51,14 @@ def test_create():
 
 
 def test_update():
-    device = DeviceDBO(name='Toaster', place='kitchen', description='Makes toast')
+    device = DeviceDBO(name='Toaster', place='kitchen',
+                       description='Makes toast')
     device = device_service.create(device)
 
-    update = DeviceSubmittal(name='toaster', place='second kitchen', description='why not?')
-    response = test_client.put('/device/' + device.name, data=update.json(), auth=('iotTest', 'passwdTest'))
+    update = DeviceSubmittal(
+        name='toaster', place='second kitchen', description='why not?')
+    response = test_client.put(
+        '/device/' + device.name, data=update.json(), auth=('iotTest', 'passwdTest'))
     assert 200 == response.status_code
 
     device = device_service.get_by_name(device.name)
@@ -61,10 +68,12 @@ def test_update():
 
 
 def test_delete():
-    device = DeviceDBO(name='stove', place='kitchen', description='Kitchen again')
+    device = DeviceDBO(name='stove', place='kitchen',
+                       description='Kitchen again')
     device_service.create(device)
 
-    response = test_client.delete('/device/STOVE', auth=('iotTest', 'passwdTest'))
+    response = test_client.delete(
+        '/device/STOVE', auth=('iotTest', 'passwdTest'))
     assert 204 == response.status_code
 
     device = device_service.get_by_name(device.name)

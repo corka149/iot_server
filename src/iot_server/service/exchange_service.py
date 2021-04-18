@@ -18,7 +18,7 @@ class ExchangeService:
     def register(self, device_name: str, access_id: str, websocket: WebSocket):
         """ Registers a new websocket connection. """
         device_name = device_name.lower().strip()
-        self._log.info('Register id %s for %s', access_id, device_name)
+        self._log.info('Register id %s for "%s"', access_id, device_name)
         self._connections[device_name][access_id] = websocket
         self._log_stats()
 

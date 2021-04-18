@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from iot_server.api import manage, device, exception
 from iot_server.infrastructure import config
 
-api = FastAPI(debug=True)
+app = FastAPI(debug=True)
 logger = logging.getLogger(__name__)
 
 
@@ -24,7 +24,8 @@ def configure_database():
         port = config.get_config('database.port')
         username = config.get_config('database.username')
         password = config.get_config('database.password')
-        authentication_source = config.get_config('database.authentication_source')
+        authentication_source = config.get_config(
+            'database.authentication_source')
         mongoengine.connect('iot', host=host, port=port, username=username,
                             authentication_source=authentication_source,
                             password=password)
@@ -32,9 +33,9 @@ def configure_database():
 
 def configure_routes():
     """ Configures the routes for the FastAPI app. """
-    api.include_router(manage.router)
-    api.include_router(device.router)
-    api.include_router(exception.router)
+    app.include_router(manage.router)
+    app.include_router(device.router)
+    app.include_router(exception.router)
 
 
 def configure(profile=None):
@@ -46,7 +47,7 @@ def configure(profile=None):
     configure_routes()
 
 
-@api.on_event('startup')
+@app.on_event('startup')
 def on_startup():
     config.set_log_level(config.get_config('logging.level'))
 
@@ -54,6 +55,6 @@ def on_startup():
 if __name__ == '__main__':
     # from IDE
     configure('dev')
-    uvicorn.run(api)
+    uvicorn.run(app)
 else:
     configure()
