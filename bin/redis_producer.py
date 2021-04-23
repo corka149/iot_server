@@ -11,8 +11,10 @@ async def main():
 
     while True:
         print('.', end='')
-        await pool.xadd('message', {'access_id': str(uuid4())}, max_len=10)
-        await asyncio.sleep(5)
+        add_task = pool.xadd('message', {'access_id': str(uuid4())}, max_len=10)
+        sleep_task = asyncio.sleep(5)
+
+        await asyncio.gather(add_task, sleep_task)
 
 
 if __name__ == '__main__':
