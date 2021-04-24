@@ -3,6 +3,7 @@ import logging
 from collections import defaultdict
 from typing import Dict
 
+from aioredis import Redis
 from starlette.websockets import WebSocket
 
 from iot_server.model.message import MessageDTO, MessageType
@@ -12,7 +13,8 @@ class ExchangeService:
     """ Tiny websocket broadcaster that store in memory websocket connections. """
     _log = logging.getLogger('ExchangeService')
 
-    def __init__(self):
+    def __init__(self, pool: Redis = None):
+        self._pool: Redis = pool
         self._connections: Dict[str, Dict[str, WebSocket]] = defaultdict(dict)
 
     def register(self, device_name: str, access_id: str, websocket: WebSocket):

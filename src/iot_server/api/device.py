@@ -16,7 +16,6 @@ from iot_server.core.exchange_service import ExchangeService
 
 router = APIRouter(prefix='/device')
 log = logging.getLogger(__name__)
-exchange_service = ExchangeService()
 DeviceNotFound = HTTPException(
     status_code=fastapi.status.HTTP_404_NOT_FOUND,
     detail='Device not found')
