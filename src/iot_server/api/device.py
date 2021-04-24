@@ -4,7 +4,7 @@ from typing import List, Optional
 from uuid import uuid4
 
 import fastapi
-from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status, Header
+from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status, Header, Depends
 from mongoengine import DoesNotExist
 from pydantic import ValidationError
 
@@ -13,6 +13,7 @@ from iot_server.model.device import DeviceDBO, DeviceDTO, DeviceSubmittal
 from iot_server.model.message import MessageDTO, MessageDBO
 from iot_server.core import device_service, message_service
 from iot_server.core.exchange_service import ExchangeService
+from iot_server.dependencies import get_exchange
 
 router = APIRouter(prefix='/device')
 log = logging.getLogger(__name__)
@@ -69,7 +70,8 @@ def update(device_name: str, updated_device: DeviceSubmittal, _: bool = authenti
 # _: bool = authenticated <== Not possible o.O ?
 @router.websocket('/device/{device_name}/exchange')
 async def exchange(websocket: WebSocket, device_name: str,
-                   authorization: Optional[str] = Header(None)):
+                   authorization: Optional[str] = Header(None),
+                   service: ExchangeService = Depends(get_exchange)):
     """ Receives and distribute messages about devices. """
     if check_authorization(authorization):
         log.debug('Successful authenticated')
@@ -82,18 +84,18 @@ async def exchange(websocket: WebSocket, device_name: str,
     await websocket.accept()
     access_id = str(uuid4())
 
-    exchange_service.register(device_name, access_id, websocket)
+    service.register(device_name, access_id, websocket)
     await websocket.send_json({'access_id': access_id})
 
     try:
         while True:
             message = await _receive_and_convert(websocket)
             if message:
-                await exchange_service.dispatch(device_name, access_id, message)
+                await service.dispatch(device_name, access_id, message)
                 await websocket.send_text('ACK')
     except WebSocketDisconnect:
         log.warning('client %s disconnected', access_id)
-        exchange_service.remove(device_name, access_id)
+        service.remove(device_name, access_id)
 
 
 async def _receive_and_convert(websocket) -> Optional[MessageDTO]:

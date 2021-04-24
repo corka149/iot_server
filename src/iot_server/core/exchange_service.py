@@ -1,21 +1,48 @@
 """ Exchange message between devices """
 import logging
 from collections import defaultdict
-from typing import Dict
+from typing import Dict, Optional
 
+import aioredis
 from aioredis import Redis
 from starlette.websockets import WebSocket
 
+from iot_server.infrastructure import config
 from iot_server.model.message import MessageDTO, MessageType
 
 
-class ExchangeService:
-    """ Tiny websocket broadcaster that store in memory websocket connections. """
-    _log = logging.getLogger('ExchangeService')
+STREAM = 'iot_messages'
 
-    def __init__(self, pool: Redis = None):
-        self._pool: Redis = pool
+
+class PoolBoy:
+    """ Takes care about Redis connection pool """
+
+    def __init__(self, host: str, port: int, db: str, password: str):
+        self._port = port
+        self._host = host
+        self._password = password
+        self._db = db
+        self._pool: Optional[Redis] = None
+
+    @property
+    async def pool(self) -> Redis:
+        if not self._pool:
+            self._pool = await aioredis.create_redis_pool(
+                f'redis://{self._host}:{self._port}', encoding='utf8',
+                password=self._password, db=self._db
+            )
+
+        return self._pool
+
+
+class ExchangeService:
+    """ Exchanges message between processes. """
+    _log = logging.getLogger('ExchangeService')
+    _instance = None
+
+    def __init__(self, pool_boy: PoolBoy):
         self._connections: Dict[str, Dict[str, WebSocket]] = defaultdict(dict)
+        self._boy: Optional[PoolBoy] = pool_boy
 
     def register(self, device_name: str, access_id: str, websocket: WebSocket):
         """ Registers a new websocket connection. """
@@ -46,6 +73,8 @@ class ExchangeService:
                 self._log.info('Send message to access id "%s"', access_id)
                 await web_socket.send_text(message.json())
                 return
+
+    # ===== PRIVATE =====
 
     def _log_stats(self):
         self._log.info('Connections hold by "%d"', id(self._connections))
