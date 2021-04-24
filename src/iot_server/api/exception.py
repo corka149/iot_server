@@ -8,7 +8,7 @@ from fastapi.responses import PlainTextResponse
 
 from iot_server.infrastructure.security import authenticated
 from iot_server.model.exception import ExceptionSubmittal
-from iot_server.service import exception_service
+from iot_server.core import exception_service
 
 router = APIRouter(prefix='/exception')
 log = logging.getLogger(__name__)

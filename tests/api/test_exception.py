@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 from iot_server.main import app
 from iot_server.model.exception import ExceptionSubmittal
-from iot_server.service import exception_service
+from iot_server.core import exception_service
 
 test_client: TestClient = TestClient(app)
 

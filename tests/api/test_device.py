@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 
 from iot_server.main import app
 from iot_server.model.device import DeviceDBO, DeviceDTO, DeviceSubmittal
-from iot_server.service import device_service
+from iot_server.core import device_service
 
 test_client: TestClient = TestClient(app)
 

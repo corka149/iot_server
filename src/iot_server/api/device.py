@@ -11,8 +11,8 @@ from pydantic import ValidationError
 from iot_server.infrastructure.security import authenticated, check_authorization
 from iot_server.model.device import DeviceDBO, DeviceDTO, DeviceSubmittal
 from iot_server.model.message import MessageDTO, MessageDBO
-from iot_server.service import device_service, message_service
-from iot_server.service.exchange_service import ExchangeService
+from iot_server.core import device_service, message_service
+from iot_server.core.exchange_service import ExchangeService
 
 router = APIRouter(prefix='/device')
 log = logging.getLogger(__name__)
