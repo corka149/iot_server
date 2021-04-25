@@ -1,38 +1,42 @@
 """ Exchange message between devices """
 import logging
 from collections import defaultdict
-from typing import Dict, Optional
 
 import aioredis
 from aioredis import Redis
 from starlette.websockets import WebSocket
 
-from iot_server.infrastructure import config
 from iot_server.model.message import MessageDTO, MessageType
-
 
 STREAM = 'iot_messages'
 
 
 class PoolBoy:
     """ Takes care about Redis connection pool """
+    _instance = None
+    __pool: Redis
 
-    def __init__(self, host: str, port: int, db: str, password: str):
-        self._port = port
-        self._host = host
-        self._password = password
-        self._db = db
-        self._pool: Optional[Redis] = None
+    def __new__(cls, host: str, port: int, db: str, password: str):
+        if not cls._instance:
+            cls._instance = super(cls, PoolBoy).__new__(cls)
+
+            cls._instance._port = port
+            cls._instance._host = host
+            cls._instance._password = password
+            cls._instance._db = db
+            cls._instance._pool = None
+
+        return cls._instance
 
     @property
     async def pool(self) -> Redis:
-        if not self._pool:
-            self._pool = await aioredis.create_redis_pool(
+        if not self.__pool:
+            self.__pool = await aioredis.create_redis_pool(
                 f'redis://{self._host}:{self._port}', encoding='utf8',
                 password=self._password, db=self._db
             )
 
-        return self._pool
+        return self.__pool
 
 
 class ExchangeService:
@@ -40,9 +44,14 @@ class ExchangeService:
     _log = logging.getLogger('ExchangeService')
     _instance = None
 
-    def __init__(self, pool_boy: PoolBoy):
-        self._connections: Dict[str, Dict[str, WebSocket]] = defaultdict(dict)
-        self._boy: Optional[PoolBoy] = pool_boy
+    def __new__(cls, pool_boy: PoolBoy):
+        if not cls._instance:
+            cls._instance = super(cls, ExchangeService).__new__(cls)
+
+            cls._instance._connections = defaultdict(dict)
+            cls._instance._boy = pool_boy
+
+        return cls._instance
 
     def register(self, device_name: str, access_id: str, websocket: WebSocket):
         """ Registers a new websocket connection. """
