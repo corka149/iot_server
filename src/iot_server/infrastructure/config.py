@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 from typing import Dict, Any
 
+import uvicorn
 import yaml
 
 _CONFIG_YAML: Dict[str, Any]
@@ -74,11 +75,20 @@ def get_config(name: str):
     raise ValueError(f'"{name} not found')
 
 
-def set_log_level(level: str):
-    """
-    Sets the logging level based on the given str.
+def logging():
+    log_config = uvicorn.config.LOGGING_CONFIG
 
-    Allowed values: DEBUG, INFO, WARN, ERROR
-    """
-    log_level = logging.getLevelName(level.upper())
-    logging.basicConfig(level=log_level)
+    fmt = '%(asctime)s - %(name)s - %(levelname)s - "%(request_line)s" %(status_code)s'
+    log_config['formatters']['access']['fmt'] = fmt
+
+    fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    log_config['formatters']['default']['fmt'] = fmt
+
+    log_config['loggers']['iot_server'] = {
+        'handlers': [
+            'default'
+        ],
+        'level': get_config('logging.level').upper()
+    }
+
+    return log_config

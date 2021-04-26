@@ -1,5 +1,5 @@
 """ Main entrypoint for API service """
-import logging
+import logging.config
 import os
 
 import mongoengine
@@ -10,7 +10,7 @@ from iot_server.api import manage, device, exception
 from iot_server.infrastructure import config
 
 app = FastAPI(debug=True)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('iot_server')
 
 
 def configure_database():
@@ -41,20 +41,23 @@ def configure_routes():
 def configure(profile=None):
     """ Central configuration entrypoint. """
     profile = profile if profile else os.getenv('IOT_SERVER_PROFILE', 'test')
-    logger.info('PROFILE: %s', profile)
     config.init(profile)
     configure_database()
     configure_routes()
 
 
 @app.on_event('startup')
-def on_startup():
-    config.set_log_level(config.get_config('logging.level'))
+def start_up():
+    profile = os.getenv('IOT_SERVER_PROFILE', 'test')
+    logger.info('PROFILE: %s', profile)
 
 
 if __name__ == '__main__':
     # from IDE
     configure('dev')
-    uvicorn.run(app)
+
+    log_config = config.logging()
+
+    uvicorn.run(app, log_config=log_config)
 else:
     configure()
