@@ -13,6 +13,7 @@ async def main():
 
     while True:
         messages = await pool.xread(
+            # timeout != None makes this read blocking the whole loop!!!
             ['message'], latest_ids=[LAST_ID], timeout=0, count=10
         )
 

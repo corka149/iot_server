@@ -98,10 +98,12 @@ class ExchangeService:
         """Listens endless for messages from io message stream and distribute them."""
         pool = await self._boy.pool
         while True:
-            payloads = pool.xread([STREAM], latest_ids=[LAST_ID], timeout=0, count=1)
+            payloads = await pool.xread(
+                [STREAM], latest_ids=[LAST_ID], count=1
+            )
             deliveries = list()
 
-            for payload in await payloads:
+            for _stream, _id, payload in payloads:
                 self._log.info("Received %r", payload)
 
                 device_name = payload.get("device_name")
@@ -116,7 +118,8 @@ class ExchangeService:
                     )
                 )
 
-            await asyncio.gather(*deliveries)
+            if len(deliveries) >= 1:
+                await asyncio.gather(*deliveries)
 
     # ===== PRIVATE =====
 
