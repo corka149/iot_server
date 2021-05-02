@@ -5,4 +5,4 @@ if [ -z $IOT_SERVER_PROFILE ]; then
   exit 1
 fi
 
-gunicorn -b 0.0.0.0:8000 -w 4 -k uvicorn.workers.UvicornWorker iot_server.main:api --name iot_server --chdir /iot_server --user iotserver
+gunicorn -b 0.0.0.0:8000 -w 4 -k uvicorn.workers.UvicornWorker iot_server.main:app --name iot_server --chdir /iot_server --user iotserver
