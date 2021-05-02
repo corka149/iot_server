@@ -11,7 +11,7 @@ database:
 redis:
   host: redis
   port: 6379
-  db: iot
+  db: 1
   password: p4ssw0rd
 
 security:
