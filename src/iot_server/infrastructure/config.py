@@ -15,16 +15,16 @@ _log = logging.getLogger(__name__)
 
 
 def init(profile: str):
-    """ Init config file from path. """
+    """Init config file from path."""
     global _CONFIG_YAML
 
     config_path = os.path.abspath(os.path.dirname(__file__))
     config_path = os.path.join(
-        config_path,
-        f'../configuration/iot_server-{profile.lower().strip()}.yaml')
+        config_path, f"../configuration/iot_server-{profile.lower().strip()}.yaml"
+    )
     yaml_path = Path(config_path)
     if yaml_path.exists():
-        with yaml_path.open('r') as yaml_file:
+        with yaml_path.open("r") as yaml_file:
             _CONFIG_YAML = yaml.load(yaml_file, Loader=yaml.Loader)
     else:
         _CONFIG_YAML = dict()
@@ -56,15 +56,15 @@ def get_config(name: str):
 
     """
     # 1. Check environment variables
-    env_name = name.replace('_', '__').replace('.', '_').upper()
-    env_val = os.getenv('IOT_' + env_name)
+    env_name = name.replace("_", "__").replace(".", "_").upper()
+    env_val = os.getenv("IOT_" + env_name)
     if env_val:
-        if ';' in env_val:
-            return [v.strip() for v in env_val.split(';')]
+        if ";" in env_val:
+            return [v.strip() for v in env_val.split(";")]
         return env_val
 
     # 2. Check config file
-    keys = name.split('.')
+    keys = name.split(".")
     val = _CONFIG_YAML
     for k in keys:
         if isinstance(val, dict):
@@ -79,16 +79,14 @@ def logging():
     log_config = uvicorn.config.LOGGING_CONFIG
 
     fmt = '%(asctime)s - %(name)s - %(levelname)s - "%(request_line)s" %(status_code)s'
-    log_config['formatters']['access']['fmt'] = fmt
+    log_config["formatters"]["access"]["fmt"] = fmt
 
-    fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    log_config['formatters']['default']['fmt'] = fmt
+    fmt = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    log_config["formatters"]["default"]["fmt"] = fmt
 
-    log_config['loggers']['iot_server'] = {
-        'handlers': [
-            'default'
-        ],
-        'level': get_config('logging.level').upper()
+    log_config["loggers"]["iot_server"] = {
+        "handlers": ["default"],
+        "level": get_config("logging.level").upper(),
     }
 
     return log_config

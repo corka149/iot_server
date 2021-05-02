@@ -5,17 +5,17 @@ from iot_server.infrastructure import config
 
 
 def get_pool_boy():
-    """ Creates a new pool boy """
+    """Creates a new pool boy"""
 
     return PoolBoy(
-        host=config.get_config('redis.host'),
-        port=config.get_config('redis.port'),
-        db=config.get_config('redis.db'),
-        password=config.get_config('redis.password')
+        host=config.get_config("redis.host"),
+        port=config.get_config("redis.port"),
+        db=config.get_config("redis.db"),
+        password=config.get_config("redis.password"),
     )
 
 
 def get_exchange(pool_boy=Depends(get_pool_boy)):
-    """ Creates a new exchange service """
+    """Creates a new exchange service"""
 
     return ExchangeService(pool_boy)

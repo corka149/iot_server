@@ -4,8 +4,8 @@ test:
 	tox
 
 format:
-	pip install -q autopep8
-	autopep8 -r --in-place --aggressive --aggressive --max-line-length 100 src/iot_server
+	pip install -q black
+	black src/iot_server
 
 check:
 	pip install -q mypy pylint pylint-mongoengine

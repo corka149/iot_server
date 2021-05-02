@@ -8,11 +8,12 @@ from starlette.websockets import WebSocket
 
 from iot_server.model.message import MessageDTO, MessageType
 
-STREAM = 'iot_messages'
+STREAM = "iot_messages"
 
 
 class PoolBoy:
-    """ Takes care about Redis connection pool """
+    """Takes care about Redis connection pool"""
+
     _instance = None
     __pool: Redis
 
@@ -32,16 +33,19 @@ class PoolBoy:
     async def pool(self) -> Redis:
         if not self.__pool:
             self.__pool = await aioredis.create_redis_pool(
-                f'redis://{self._host}:{self._port}', encoding='utf8',
-                password=self._password, db=self._db
+                f"redis://{self._host}:{self._port}",
+                encoding="utf8",
+                password=self._password,
+                db=self._db,
             )
 
         return self.__pool
 
 
 class ExchangeService:
-    """ Exchanges message between processes. """
-    _log = logging.getLogger('ExchangeService')
+    """Exchanges message between processes."""
+
+    _log = logging.getLogger("ExchangeService")
     _instance = None
 
     def __new__(cls, pool_boy: PoolBoy):
@@ -54,20 +58,20 @@ class ExchangeService:
         return cls._instance
 
     def register(self, device_name: str, access_id: str, websocket: WebSocket):
-        """ Registers a new websocket connection. """
+        """Registers a new websocket connection."""
         device_name = device_name.lower().strip()
         self._log.info('Register id %s for "%s"', access_id, device_name)
         self._connections[device_name][access_id] = websocket
         self._log_stats()
 
     def remove(self, device_name: str, access_id: str):
-        """ Removes a websocket connection from the connection store. """
-        self._log.info('Remove id %s from %s', access_id, device_name)
+        """Removes a websocket connection from the connection store."""
+        self._log.info("Remove id %s from %s", access_id, device_name)
         del self._connections[device_name][access_id]
         self._log_stats()
 
     async def dispatch(self, device_name: str, sender_id: str, message: MessageDTO):
-        """ Dispatches a message to 0, 1 or n targets """
+        """Dispatches a message to 0, 1 or n targets"""
         is_broadcast = message.target == MessageType.BROADCAST.value
 
         self._log_stats()
@@ -89,4 +93,4 @@ class ExchangeService:
         self._log.info('Connections hold by "%d"', id(self._connections))
         for key in self._connections:
             ids = self._connections[key].keys()
-            self._log.info('Registered ids for %s: %s', key, ', '.join(ids))
+            self._log.info("Registered ids for %s: %s", key, ", ".join(ids))
