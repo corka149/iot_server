@@ -5,8 +5,3 @@ database:
   host: 'mongo'
   port: 27017
   authentication_source: admin
-
-redis:
-  host: redis
-  port: 6379
-  password: p4ssw0rd

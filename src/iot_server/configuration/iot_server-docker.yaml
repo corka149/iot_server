@@ -8,12 +8,6 @@ database:
   password: s3cr3t
   authentication_source: admin
 
-redis:
-  host: redis
-  port: 6379
-  db: 1
-  password: p4ssw0rd
-
 security:
   basic:
     username: iot

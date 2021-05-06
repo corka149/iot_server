@@ -4,12 +4,6 @@ logging:
 database:
   host: 'mongomock://localhost'
 
-redis:
-  host: '127.0.0.1'
-  port: 6379
-  db: 1
-  password: p4ssw0rd
-
 security:
   basic:
     username: iotTest

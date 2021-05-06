@@ -2,48 +2,10 @@
 import asyncio
 import logging
 from collections import defaultdict
-from typing import List, Any
 
-import aioredis
-from aioredis import Redis
 from starlette.websockets import WebSocket
 
 from iot_server.model.message import MessageDTO, MessageType
-
-STREAM = "iot_messages"
-LAST_ID = "$"
-
-
-class PoolBoy:
-    """Takes care about Redis connection pool"""
-
-    _instance = None
-    _pool: Redis
-
-    def __new__(cls, host: str, port: int, db: str, password: str):
-        if not cls._instance:
-            cls._instance = super(cls, PoolBoy).__new__(cls)
-
-            cls._instance._port = port
-            cls._instance._host = host
-            cls._instance._password = password
-            cls._instance._db = db
-            cls._instance._pool = None
-
-        return cls._instance
-
-    @property
-    async def pool(self) -> Redis:
-        if not self._pool:
-            self._pool = await aioredis.from_url(
-                f"redis://{self._host}:{self._port}",
-                encoding="utf8",
-                password=self._password,
-                db=self._db,
-                decode_responses=True,
-            )
-
-        return self._pool
 
 
 class ExchangeService:
@@ -53,13 +15,11 @@ class ExchangeService:
     _instance = None
     _task_launched: bool
 
-    def __new__(cls, pool_boy: PoolBoy):
+    def __new__(cls):
         if not cls._instance:
             cls._instance = super(cls, ExchangeService).__new__(cls)
 
             cls._instance._connections = defaultdict(dict)
-            cls._instance._boy = pool_boy
-            cls._task_launched = False
 
         return cls._instance
 
@@ -70,12 +30,6 @@ class ExchangeService:
         self._connections[device_name][access_id] = websocket
         self._log_stats()
 
-        # Listening makes only sense when someone registered
-        if not self._task_launched:
-            self._log.info("Registered listen-task")
-            asyncio.get_event_loop().create_task(self._instance.listen())
-            self._task_launched = True
-
     def remove(self, device_name: str, access_id: str):
         """Removes a websocket connection from the connection store."""
         self._log.info("Remove id %s from %s", access_id, device_name)
@@ -84,51 +38,9 @@ class ExchangeService:
 
     async def dispatch(self, device_name: str, sender_id: str, message: MessageDTO):
         """Dispatches a message."""
-        # Inform other workers
-        pool = await self._boy.pool
-
-        payload = {
-            **message.dict(),
-            "device_name": device_name,
-            "sender_id": sender_id,
-        }
-
-        await pool.xadd(STREAM, payload, maxlen=5)
-
-    async def listen(self):
-        """Listens endless for messages from io message stream and distribute them."""
-        pool = await self._boy.pool
-        while True:
-            await asyncio.sleep(1)  # aioredis.xread blocks
-            payloads = await pool.xread({STREAM: LAST_ID}, count=1, block=1)  # block 1ms
-            deliveries = list()
-
-            for _stream, messages in payloads:
-                for _id, message in messages:
-                    self._log.info("Received %r", message)
-
-                    device_name = message.get("device_name")
-                    sender_id = message.get("sender_id")
-                    message = MessageDTO(**message)
-
-                    is_broadcast = message.target == MessageType.BROADCAST.value
-
-                    deliveries = deliveries + (
-                        self._distribute_message(
-                            device_name, is_broadcast, message, sender_id
-                        )
-                    )
-
-            if len(deliveries) >= 1:
-                await asyncio.gather(*deliveries)
-
-    # ===== PRIVATE =====
-
-    def _distribute_message(
-        self, device_name, is_broadcast, message, sender_id
-    ) -> List[Any]:
-        """Delivers a single message to all possible receivers"""
-        deliveries = list()
+        self._log.info("Received %r", message)
+        deliveries = []
+        is_broadcast = message.target == MessageType.BROADCAST.value
 
         for access_id, web_socket in self._connections[device_name].items():
             web_socket: WebSocket = web_socket
@@ -141,7 +53,7 @@ class ExchangeService:
                 deliveries.append(web_socket.send_text(message.json()))
                 break
 
-        return deliveries
+        await asyncio.gather(*deliveries)
 
     # ===== PRIVATE =====
 
